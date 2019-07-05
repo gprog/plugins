@@ -164,9 +164,8 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
 - (instancetype)initWithURL:(NSURL*)url
                frameUpdater:(FLTFrameUpdater*)frameUpdater
                    mimeType:(NSString*)mimeType {
-  NSString* fileExtention = [[url absoluteString] pathExtension];
   AVURLAsset* asset;
-  if ([fileExtention length] == 0) {
+  if (mimeType) {
     asset = [[AVURLAsset alloc] initWithURL:url
                                     options:@{@"AVURLAssetOutOfBandMIMETypeKey" : mimeType}];
   } else {
@@ -504,6 +503,12 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
                                             mimeType:mimeType];
       [self onPlayerSetup:player frameUpdater:frameUpdater result:result];
     } else if (uriArg) {
+        NSURL *url;
+        if ([uriArg containsString:@"file://"]) {
+            url = [NSURL fileURLWithPath:[uriArg stringByReplacingOccurrencesOfString:@"file://" withString:@""]];
+        } else {
+            url = [NSURL URLWithString:uriArg];
+        }
       player = [[FLTVideoPlayer alloc] initWithURL:[NSURL URLWithString:uriArg]
                                       frameUpdater:frameUpdater
                                           mimeType:mimeType];
