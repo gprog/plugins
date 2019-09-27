@@ -166,8 +166,19 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
                    mimeType:(NSString*)mimeType {
   AVURLAsset* asset;
   if (mimeType) {
-    asset = [[AVURLAsset alloc] initWithURL:url
-                                    options:@{@"AVURLAssetOutOfBandMIMETypeKey" : mimeType}];
+      if (([[[UIDevice currentDevice] systemVersion] compare:@"12" options:NSNumericSearch] == NSOrderedAscending)) {
+          NSError *error;
+          NSString *linkPath = [[NSTemporaryDirectory() stringByAppendingPathComponent:url.lastPathComponent] stringByAppendingString:[NSString stringWithFormat:@"video.%@", [mimeType componentsSeparatedByString:@"/"].lastObject]];
+          if ([[NSFileManager defaultManager] fileExistsAtPath:linkPath]) {
+              [[NSFileManager defaultManager] removeItemAtPath:linkPath error:nil];
+          }
+          
+          [[NSFileManager defaultManager] linkItemAtPath:url.path toPath:linkPath error:&error];
+          url = [NSURL fileURLWithPath:linkPath];
+          asset = [[AVURLAsset alloc] initWithURL:url options:nil];
+      } else {
+          asset = [[AVURLAsset alloc] initWithURL:url options:@{@"AVURLAssetOutOfBandMIMETypeKey" : mimeType}];
+      }
   } else {
     asset = [[AVURLAsset alloc] initWithURL:url options:nil];
   }
